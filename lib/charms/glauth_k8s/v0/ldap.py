@@ -155,7 +155,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 5
+LIBPATCH = 6
 
 PYDEPS = ["pydantic~=2.5.3"]
 
@@ -242,7 +242,7 @@ class LdapProviderBaseData(BaseModel):
 
         for v in vs:
             if not v.startswith("ldap://"):
-                raise ValidationError("Invalid LDAP URL scheme.")
+                raise ValidationError.from_exception_data("Invalid LDAP URL scheme.")
 
         return vs
 
