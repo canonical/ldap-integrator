@@ -1,9 +1,10 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+import functools
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, Dict, Optional
+from typing import AsyncGenerator, Callable, Optional
 
 import pytest
 import pytest_asyncio
@@ -15,6 +16,7 @@ METADATA = yaml.safe_load(Path("./charmcraft.yaml").read_text())
 APP_NAME = METADATA["name"]
 GLAUTH_APP = "glauth-k8s"
 CERTIFICATE_PROVIDER_APP = "self-signed-certificates"
+BIND_PASSWORD_SECRET = "password"
 
 
 async def get_secret(ops_test: OpsTest, secret_id: str) -> dict:
@@ -65,19 +67,33 @@ async def get_unit_integration_data(
     return data["related-units"][f"{remote_app_name}/0"]["data"] if data else None
 
 
+@pytest_asyncio.fixture
+async def app_integration_data(ops_test: OpsTest) -> Callable:
+    return functools.partial(get_app_integration_data, ops_test)
+
+
+@pytest_asyncio.fixture
+async def ldap_integration_data(app_integration_data: Callable) -> Optional[dict]:
+    return await app_integration_data(GLAUTH_APP, "ldap-client")
+
+
 @pytest.fixture
 def ldap_integrator_application(ops_test: OpsTest) -> Application:
     return ops_test.model.applications[APP_NAME]
 
 
+@pytest_asyncio.fixture(scope="module")
+async def local_charm(ops_test: OpsTest) -> Path:
+    return await ops_test.build_charm(".")
+
+
 @pytest_asyncio.fixture
-async def ldap_integrator_charm_config(ops_test: OpsTest) -> Dict:
-    secrets = await ops_test.model.list_secrets({"label": "password"})
+async def ldap_integrator_charm_config(ops_test: OpsTest) -> dict:
+    secrets = await ops_test.model.list_secrets({"label": BIND_PASSWORD_SECRET})
     if not secrets:
-        password = await ops_test.model.add_secret("password", ["password=secret"])
+        password = await ops_test.model.add_secret(BIND_PASSWORD_SECRET, ["password=secret"])
     else:
         password = secrets[0].uri
-    await ops_test.model.grant_secret("password", APP_NAME)
 
     return {
         "urls": "ldap://ldap.com/path/to/somewhere",
