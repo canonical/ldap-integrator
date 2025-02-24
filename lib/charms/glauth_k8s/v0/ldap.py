@@ -135,7 +135,7 @@ from ops.charm import (
     RelationCreatedEvent,
     RelationEvent,
 )
-from ops.framework import EventSource, Object, ObjectEvents
+from ops.framework import EventSource, Handle, Object, ObjectEvents
 from ops.model import Relation, SecretNotFoundError
 from pydantic import (
     BaseModel,
@@ -155,9 +155,9 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 5
+LIBPATCH = 8
 
-PYDEPS = ["pydantic~=2.5.3"]
+PYDEPS = ["pydantic>=2.5.3"]
 
 DEFAULT_RELATION_NAME = "ldap"
 BIND_ACCOUNT_SECRET_LABEL_TEMPLATE = Template("relation-$relation_id-bind-account-secret")
@@ -242,7 +242,7 @@ class LdapProviderBaseData(BaseModel):
 
         for v in vs:
             if not v.startswith("ldap://"):
-                raise ValidationError("Invalid LDAP URL scheme.")
+                raise ValidationError.from_exception_data("Invalid LDAP URL scheme.")
 
         return vs
 
@@ -279,6 +279,9 @@ class LdapRequirerData(BaseModel):
 
 class LdapRequestedEvent(RelationEvent):
     """An event emitted when the LDAP integration is built."""
+
+    def __init__(self, handle: Handle, relation: Relation) -> None:
+        super().__init__(handle, relation, relation.app)
 
     @property
     def data(self) -> Optional[LdapRequirerData]:
