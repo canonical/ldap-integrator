@@ -12,9 +12,8 @@ summary: An integrator charm for configuring ldap clients.
 description: |
   An integrator charm for configuring ldap clients.
 
-base: ubuntu@22.04
 platforms:
-  amd64:
+  ubuntu@22.04:amd64:
 
 provides:
   ldap:
