@@ -43,6 +43,7 @@ def charm_configuration(harness: Harness, password_secret: Tuple[str, str]) -> D
     harness.grant_secret(secret, harness.charm.app)
     config = {
         "urls": "ldap://ldap.com/path/to/somewhere",
+        "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
         "starttls": True,
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",

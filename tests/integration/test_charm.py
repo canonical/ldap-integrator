@@ -2,6 +2,7 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -37,7 +38,7 @@ async def test_build_and_deploy(
     )
     await ops_test.model.deploy(
         CERTIFICATE_PROVIDER_APP,
-        channel="stable",
+        channel="latest/stable",
         trust=True,
     )
     await ops_test.model.integrate(GLAUTH_APP, CERTIFICATE_PROVIDER_APP)
@@ -60,11 +61,20 @@ async def test_build_and_deploy(
     await ops_test.model.grant_secret(BIND_PASSWORD_SECRET, APP_NAME)
     await ops_test.model.integrate(APP_NAME, GLAUTH_APP)
 
-    await ops_test.model.wait_for_idle(
-        apps=[APP_NAME, GLAUTH_APP, CERTIFICATE_PROVIDER_APP],
-        status="active",
-        raise_on_blocked=False,
-        timeout=60 * 10,
+    await asyncio.gather(
+        ops_test.model.wait_for_idle(
+            apps=[APP_NAME],
+            status="active",
+            raise_on_blocked=False,
+            timeout=60 * 10,
+        ),
+        ops_test.model.wait_for_idle(
+            apps=[GLAUTH_APP, CERTIFICATE_PROVIDER_APP],
+            status="active",
+            raise_on_blocked=False,
+            raise_on_error=False,
+            timeout=60 * 10,
+        ),
     )
 
 
@@ -95,6 +105,7 @@ async def test_ldap_integration(
         "bind_dn": ldap_integrator_charm_config["bind_dn"],
         "starttls": ldap_integrator_charm_config["starttls"],
         "urls": json.dumps(ldap_integrator_charm_config["urls"].split(", ")),
+        "ldaps_urls": json.dumps(ldap_integrator_charm_config["ldaps_urls"].split(", "))
     }
 
 

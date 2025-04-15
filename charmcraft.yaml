@@ -29,6 +29,10 @@ config:
       description: |
         Comma separated list of ldap server urls
       type: string
+    ldaps_urls:
+      description: |
+        Comma separated list of ldaps server urls
+      type: string
     base_dn:
       description: |
         The base_dn
