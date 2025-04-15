@@ -56,6 +56,7 @@ class TestHolisticHandler:
 
         expected = LdapProviderData(
             urls=charm_configuration["urls"].split(","),
+            ldaps_urls=charm_configuration["ldaps_urls"].split(","),
             base_dn=charm_configuration["base_dn"],
             starttls=charm_configuration["starttls"],
             bind_dn=charm_configuration["bind_dn"],
