@@ -97,6 +97,7 @@ async def ldap_integrator_charm_config(ops_test: OpsTest) -> dict:
 
     return {
         "urls": "ldap://ldap.com/path/to/somewhere",
+        "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
         "starttls": "True",
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",
