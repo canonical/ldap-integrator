@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 import functools
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator, Callable, Optional
@@ -84,7 +85,12 @@ def ldap_integrator_application(ops_test: OpsTest) -> Application:
 
 @pytest_asyncio.fixture(scope="module")
 async def local_charm(ops_test: OpsTest) -> Path:
-    return await ops_test.build_charm(".")
+    # in GitHub CI, charms are built with charmcraftcache and uploaded to $CHARM_PATH
+    charm = os.getenv("CHARM_PATH")
+    if not charm:
+        # fall back to build locally - required when run outside of GitHub CI
+        charm = await ops_test.build_charm(".")
+    return charm
 
 
 @pytest_asyncio.fixture
