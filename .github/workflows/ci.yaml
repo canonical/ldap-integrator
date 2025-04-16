@@ -1,0 +1,26 @@
+name: ci
+run-name: CI for ${{ github.sha }} on ${{ github.ref_name }}
+
+on:
+   workflow_dispatch:
+   workflow_call:
+   push:
+     branches:
+     - "main"
+     - "release-**"
+     - "track/**"
+     paths-ignore:
+     - "terraform/**"
+   pull_request:
+     branches:
+     - "*"
+     paths-ignore:
+     - "terraform/**"
+
+jobs:
+  tests:
+    name: CI
+    uses: canonical/identity-team/.github/workflows/charm-pull-request.yaml@74923c8fd716e55207cf19359621902c45b24b52 # v1.8.2
+    with:
+      use-charmcraftcache: true
+      node-size: large
