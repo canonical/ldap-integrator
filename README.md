@@ -66,11 +66,21 @@ juju integrate glauth-k8s ldap-integrator
 
 Now glauth will be proxying all ldap requests to your ldap server.
 
-## Other resources
+## Security
 
-- [Read more](https://charmhub.io/topics/canonical-identity-platform)
+Please see [SECURITY.md](https://github.com/canonical/ldap-integrator/blob/main/SECURITY.md)
+for guidelines on reporting security issues.
 
-- [Contributing](CONTRIBUTING.md)
+## Contributing
 
-- See the [Juju SDK documentation](https://juju.is/docs/sdk) for more
-information about developing and improving charms.
+Please see the [Juju SDK docs](https://juju.is/docs/sdk) for guidelines on
+enhancements to this charm following best practice guidelines,
+and [CONTRIBUTING.md](https://github.com/canonical/ldap-integrator/blob/main/CONTRIBUTING.md)
+for developer guidance.
+
+## License
+
+The Charmed Kratos Operator is free software, distributed under the Apache
+Software License, version 2.0.
+See [LICENSE](https://github.com/canonical/ldap-integrator/blob/main/LICENSE)
+for more information.
