@@ -105,7 +105,7 @@ async def test_ldap_integration(
         "bind_dn": ldap_integrator_charm_config["bind_dn"],
         "starttls": ldap_integrator_charm_config["starttls"],
         "urls": json.dumps(ldap_integrator_charm_config["urls"].split(", ")),
-        "ldaps_urls": json.dumps(ldap_integrator_charm_config["ldaps_urls"].split(", "))
+        "ldaps_urls": json.dumps(ldap_integrator_charm_config["ldaps_urls"].split(", ")),
     }
 
 
