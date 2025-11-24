@@ -1,4 +1,4 @@
 -r requirements.txt
-juju
+jubilant
 pytest
-pytest-operator
+tenacity
