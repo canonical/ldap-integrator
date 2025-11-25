@@ -1,103 +1,56 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import functools
+import logging
 import os
-from contextlib import asynccontextmanager
+import subprocess
+from collections.abc import Iterator
 from pathlib import Path
-from typing import AsyncGenerator, Callable, Optional
 
+import jubilant
 import pytest
-import pytest_asyncio
-import yaml
-from juju.application import Application
-from pytest_operator.plugin import OpsTest
+from helpers import build_charm, create_temp_juju_model
 
-METADATA = yaml.safe_load(Path("./charmcraft.yaml").read_text())
-APP_NAME = METADATA["name"]
-GLAUTH_APP = "glauth-k8s"
-CERTIFICATE_PROVIDER_APP = "self-signed-certificates"
-BIND_PASSWORD_SECRET = "password"
+from constants import BIND_PASSWORD_SECRET
+
+logger = logging.getLogger(__name__)
 
 
-async def get_secret(ops_test: OpsTest, secret_id: str) -> dict:
-    show_secret_cmd = f"show-secret {secret_id} --reveal".split()
-    _, stdout, _ = await ops_test.juju(*show_secret_cmd)
-    cmd_output = yaml.safe_load(stdout)
-    return cmd_output[secret_id]
+@pytest.fixture(scope="module")
+def local_charm() -> Path:
+    # in GitHub CI, charms are built with charmcraftcache and uploaded to $CHARM_PATH
+    charm = Path(charm) if (charm := os.getenv("CHARM_PATH")) else None
+    if not charm:
+        # fall back to build locally - required when run outside of GitHub CI
+        logger.info("building local `ldap-integrator` charm from repository")
+        try:
+            charm = build_charm()
+            logger.info("built local `ldap-integrator` charm at %s", charm)
+            return charm
+        except subprocess.CalledProcessError as e:
+            logger.error("failed to build charm: %s", e.stdout if hasattr(e, "stdout") else e)
+            raise
+        except FileNotFoundError as e:
+            logger.error("failed to move charm: %s", e)
+            raise
+
+    logger.info("using local `ldap-integrator` charm located at %s", charm)
+    return charm.absolute()
 
 
-async def get_unit_data(ops_test: OpsTest, unit_name: str) -> dict:
-    show_unit_cmd = f"show-unit {unit_name}".split()
-    _, stdout, _ = await ops_test.juju(*show_unit_cmd)
-    cmd_output = yaml.safe_load(stdout)
-    return cmd_output[unit_name]
-
-
-async def get_integration_data(
-    ops_test: OpsTest, app_name: str, integration_name: str, unit_num: int = 0
-) -> Optional[dict]:
-    data = await get_unit_data(ops_test, f"{app_name}/{unit_num}")
-    return next(
-        (
-            integration
-            for integration in data["relation-info"]
-            if integration["endpoint"] == integration_name
-        ),
-        None,
-    )
-
-
-async def get_app_integration_data(
-    ops_test: OpsTest,
-    app_name: str,
-    integration_name: str,
-    unit_num: int = 0,
-) -> Optional[dict]:
-    data = await get_integration_data(ops_test, app_name, integration_name, unit_num)
-    return data["application-data"] if data else None
-
-
-async def get_unit_integration_data(
-    ops_test: OpsTest,
-    app_name: str,
-    remote_app_name: str,
-    integration_name: str,
-) -> Optional[dict]:
-    data = await get_integration_data(ops_test, app_name, integration_name)
-    return data["related-units"][f"{remote_app_name}/0"]["data"] if data else None
-
-
-@pytest_asyncio.fixture
-async def app_integration_data(ops_test: OpsTest) -> Callable:
-    return functools.partial(get_app_integration_data, ops_test)
-
-
-@pytest_asyncio.fixture
-async def ldap_integration_data(app_integration_data: Callable) -> Optional[dict]:
-    return await app_integration_data(GLAUTH_APP, "ldap-client")
+@pytest.fixture(scope="session")
+def integrator_model(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
+    model = str(request.config.getoption("--model"))
+    yield from create_temp_juju_model(request, model=model)
 
 
 @pytest.fixture
-def ldap_integrator_application(ops_test: OpsTest) -> Application:
-    return ops_test.model.applications[APP_NAME]
-
-
-@pytest_asyncio.fixture(scope="module")
-async def local_charm(ops_test: OpsTest) -> Path:
-    # in GitHub CI, charms are built with charmcraftcache and uploaded to $CHARM_PATH
-    charm = os.getenv("CHARM_PATH")
-    if not charm:
-        # fall back to build locally - required when run outside of GitHub CI
-        charm = await ops_test.build_charm(".")
-    return charm
-
-
-@pytest_asyncio.fixture
-async def ldap_integrator_charm_config(ops_test: OpsTest) -> dict:
-    secrets = await ops_test.model.list_secrets({"label": BIND_PASSWORD_SECRET})
+def integrator_config(integrator_model: jubilant.Juju) -> dict:
+    secrets = [s for s in integrator_model.secrets() if s.name == BIND_PASSWORD_SECRET]
     if not secrets:
-        password = await ops_test.model.add_secret(BIND_PASSWORD_SECRET, ["password=secret"])
+        password = integrator_model.add_secret(
+            BIND_PASSWORD_SECRET, content={"password": "secret"}
+        )
     else:
         password = secrets[0].uri
 
@@ -112,24 +65,17 @@ async def ldap_integrator_charm_config(ops_test: OpsTest) -> dict:
     }
 
 
-@asynccontextmanager
-async def remove_integration(
-    ops_test: OpsTest, remote_app_name: str, integration_name: str
-) -> AsyncGenerator[None, None]:
-    remove_integration_cmd = (
-        f"remove-relation {APP_NAME}:{integration_name} {remote_app_name}"
-    ).split()
-    await ops_test.juju(*remove_integration_cmd)
-    await ops_test.model.wait_for_idle(
-        apps=[remote_app_name],
-        status="active",
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--model",
+        action="store",
+        default="",
+        help="Juju model to use; if not provided, a new model "
+        "will be created for each test which requires one",
     )
-
-    try:
-        yield
-    finally:
-        await ops_test.model.integrate(f"{APP_NAME}:{integration_name}", remote_app_name)
-        await ops_test.model.wait_for_idle(
-            apps=[APP_NAME, remote_app_name],
-            status="active",
-        )
+    parser.addoption(
+        "--keep-models",
+        action="store_true",
+        default=False,
+        help="keep temporarily created models",
+    )
