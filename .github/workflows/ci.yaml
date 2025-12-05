@@ -20,7 +20,7 @@ on:
 jobs:
   tests:
     name: CI
-    uses: canonical/identity-team/.github/workflows/charm-pull-request.yaml@f858d2dce01066546803a4279c3525f053ca7d0f # v1.9.2
+    uses: canonical/identity-team/.github/workflows/charm-pull-request.yaml@test-juju4 # test with juju 4/stable
     with:
       use-charmcraftcache: true
       node-size: large
