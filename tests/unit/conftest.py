@@ -17,12 +17,12 @@ def all_satisfied_conditions(mocker: MockerFixture) -> None:
 
 
 @pytest.fixture
-def charm_configuration(password_secret: testing.Secret) -> dict:
+def charm_configuration(password_secret: testing.Secret, starttls: bool) -> dict:
     config = {
         "urls": "ldap://ldap.com/path/to/somewhere",
         "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
-        "starttls": True,
+        "starttls": starttls,
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",
         "bind_password": password_secret.id,
         "auth_method": "simple",
@@ -48,3 +48,8 @@ def mock_ldap_provider(mocker: MockerFixture) -> MagicMock:
 @pytest.fixture
 def password_secret() -> testing.Secret:
     return testing.Secret(tracked_content={"password": "bind_password"})
+
+
+@pytest.fixture(params=[True, False], ids=["starttls enabled", "starttls not enabled"])
+def starttls(request: pytest.FixtureRequest) -> bool:
+    return request.param

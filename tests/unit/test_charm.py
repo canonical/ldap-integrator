@@ -39,7 +39,6 @@ class TestHolisticHandler:
     def test_when_ready(
         self,
         ctx: testing.Context[LdapIntegratorCharm],
-        mocker: MockerFixture,
         mock_ldap_provider: MagicMock,
         all_satisfied_conditions: None,
         ldap_integration: testing.Relation,
