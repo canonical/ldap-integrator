@@ -18,9 +18,113 @@ on:
      - "terraform/**"
 
 jobs:
-  tests:
-    name: CI
-    uses: canonical/identity-team/.github/workflows/charm-pull-request.yaml@f858d2dce01066546803a4279c3525f053ca7d0f # v1.9.2
+  linting:
+    name: Linting
+    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@f858d2dce01066546803a4279c3525f053ca7d0f # v1.9.2
+
+  unit-test:
+    name: Unit Tests
+    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@f858d2dce01066546803a4279c3525f053ca7d0f # v1.9.2
+    needs:
+      - linting
+
+  build:
+    name: Build charm
+    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@f858d2dce01066546803a4279c3525f053ca7d0f # v1.9.2
     with:
       use-charmcraftcache: true
-      node-size: large
+    needs:
+      - unit-test
+
+  integration-test-k8s:
+    name: Integration Tests (microk8s)
+    runs-on: [self-hosted, amd64, large, jammy ]
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup operator environment (microk8s)
+        uses: charmed-kubernetes/actions-operator@main
+        with:
+          juju-channel: 3.6/stable
+          provider: microk8s
+          channel: 1.32-strict/stable
+          microk8s-addons: "dns hostpath-storage metallb:10.64.140.43-10.64.140.49"
+
+      - name: Get charm info
+        id: get-charm-info
+        run: |
+          echo charm-name=$(cat charmcraft.yaml | yq '.name') >> $GITHUB_OUTPUT
+
+      - name: Set CHARM_PATH envvar
+        run: echo "CHARM_PATH=${{ github.workspace }}/${{ needs.build.outputs.charm-paths }}" >> $GITHUB_ENV
+
+      - name: Download charm artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ github.sha }}-build
+
+      - name: Run integration tests
+        run: tox -e integration -- --run-k8s --model testing
+
+      - name: Get contexts
+        if: failure()
+        run: kubectl config view
+
+      - name: Get juju status
+        if: failure()
+        run: juju status --relations
+
+      - name: Dump logs
+        if: failure()
+        uses: canonical/charming-actions/dump-logs@main
+
+      - name: Get juju logs for the charm
+        if: ${{ failure() }}
+        run: juju debug-log --replay --include ${{ steps.get-charm-info.outputs.charm-name }}/0
+
+  integration-test-machine:
+    name: Integration Tests (lxd)
+    runs-on: [self-hosted, amd64, large, jammy]
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup operator environment (lxd)
+        uses: charmed-kubernetes/actions-operator@main
+        with:
+          juju-channel: 3.6/stable
+          provider: lxd
+          channel: 5.21/stable
+
+      - name: Get charm info
+        id: get-charm-info
+        run: |
+          echo charm-name=$(cat charmcraft.yaml | yq '.name') >> $GITHUB_OUTPUT
+
+      - name: Set CHARM_PATH envvar
+        run: echo "CHARM_PATH=${{ github.workspace }}/${{ needs.build.outputs.charm-paths }}" >> $GITHUB_ENV
+
+      - name: Download charm artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ github.sha }}-build
+
+      - name: Run integration tests
+        run: tox -e integration -- --run-machine --model testing
+
+      - name: Get juju status
+        if: failure()
+        run: juju status --relations
+
+      - name: Dump logs
+        if: failure()
+        uses: canonical/charming-actions/dump-logs@main
+
+      - name: Get juju logs for the charm
+        if: ${{ failure() }}
+        run: juju debug-log --replay --include ${{ steps.get-charm-info.outputs.charm-name }}/0

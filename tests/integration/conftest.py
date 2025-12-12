@@ -4,14 +4,16 @@
 import logging
 import os
 import subprocess
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
+from itertools import product
 from pathlib import Path
 
 import jubilant
 import pytest
-from helpers import build_charm, create_temp_juju_model
 
-from constants import BIND_PASSWORD_SECRET
+# isort: off
+from constants import BIND_PASSWORD_SECRET, BIND_PASSWORD
+from helpers import build_charm, create_temp_juju_model
 
 logger = logging.getLogger(__name__)
 
@@ -44,28 +46,72 @@ def integrator_model(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
     yield from create_temp_juju_model(request, model=model)
 
 
+@pytest.fixture(scope="session")
+def server_model(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
+    yield from create_temp_juju_model(request)
+
+
 @pytest.fixture
-def integrator_config(integrator_model: jubilant.Juju) -> dict:
+def bind_password_secret(integrator_model: jubilant.Juju) -> jubilant.SecretURI:
     secrets = [s for s in integrator_model.secrets() if s.name == BIND_PASSWORD_SECRET]
     if not secrets:
         password = integrator_model.add_secret(
-            BIND_PASSWORD_SECRET, content={"password": "secret"}
+            BIND_PASSWORD_SECRET, content={"password": BIND_PASSWORD}
         )
     else:
         password = secrets[0].uri
 
+    return password
+
+
+@pytest.fixture
+def integrator_config(bind_password_secret: jubilant.SecretURI) -> dict:
     return {
         "urls": "ldap://ldap.com/path/to/somewhere",
         "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
         "starttls": "True",
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",
-        "bind_password": password,
+        "bind_password": bind_password_secret,
         "auth_method": "simple",
     }
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "k8s: integration tests to run on a k8s cloud")
+    config.addinivalue_line("markers", "machine: integration tests to run on a machine cloud")
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: Iterable[pytest.Item]) -> None:
+    enable = set()
+    run_k8s = config.getoption("--run-k8s")
+    run_machine = config.getoption("--run-machine")
+
+    if run_k8s and run_machine:
+        pytest.exit(
+            "Cannot run both k8s and machine cloud integration tests at the same time. "
+            + "Choose only one set of tests to run with either `--run-k8s` or `--run-machine`"
+        )
+    elif run_k8s:
+        enable.add("k8s")
+    elif run_machine:
+        enable.add("machine")
+    else:
+        # Run k8s cloud integration tests by default.
+        enable.add("k8s")
+
+    for enabled, item in product(enable, items):
+        if enabled not in item.keywords:
+            item.add_marker(pytest.mark.skip)
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--keep-models",
+        action="store_true",
+        default=False,
+        help="keep temporarily created models",
+    )
     parser.addoption(
         "--model",
         action="store",
@@ -74,8 +120,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "will be created for each test which requires one",
     )
     parser.addoption(
-        "--keep-models",
+        "--run-k8s",
         action="store_true",
         default=False,
-        help="keep temporarily created models",
+        help="run k8s cloud tests for ldap-integrator",
+    )
+    parser.addoption(
+        "--run-machine",
+        action="store_true",
+        default=False,
+        help="run machine cloud tests for ldap-integrator",
     )

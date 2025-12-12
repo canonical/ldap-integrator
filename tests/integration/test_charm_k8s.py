@@ -6,9 +6,13 @@ import json
 from pathlib import Path
 
 import jubilant
+import pytest
+
+# isort: off
+from constants import APP_NAME, BIND_PASSWORD_SECRET, CERTIFICATE_PROVIDER_APP, GLAUTH_APP
 from helpers import get_integration_data, remove_integration
 
-from constants import APP_NAME, BIND_PASSWORD_SECRET, CERTIFICATE_PROVIDER_APP, GLAUTH_APP
+pytestmark = pytest.mark.k8s
 
 
 def test_build_and_deploy(
