@@ -147,7 +147,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 10
+LIBPATCH = 13
 
 PYDEPS = ["pydantic"]
 
@@ -256,13 +256,11 @@ class Secret:
         cls,
         charm: CharmBase,
         label: str,
-        *,
-        content: Optional[dict[str, str]] = None,
-    ) -> "Secret":
+    ) -> Optional["Secret"]:
         try:
             secret = charm.model.get_secret(label=label)
         except SecretNotFoundError:
-            secret = charm.app.add_secret(label=label, content=content)
+            return None
 
         return Secret(secret)
 
@@ -375,7 +373,35 @@ class LdapRequirerEvents(ObjectEvents):
     ldap_unavailable = EventSource(LdapUnavailableEvent)
 
 
-class LdapProvider(Object):
+class _LdapInterface(Object):
+    def __init__(self, charm: CharmBase, relation_name: str = DEFAULT_RELATION_NAME) -> None:
+        super().__init__(charm, relation_name)
+
+        self.charm = charm
+        self.app = charm.app
+        self.unit = charm.unit
+        self._relation_name = relation_name
+
+    @property
+    def relations(self) -> List[Relation]:
+        """The list of Relation instances associated with this relation_name."""
+        return [
+            relation
+            for relation in self.charm.model.relations[self._relation_name]
+            if self._is_relation_active(relation)
+        ]
+
+    @staticmethod
+    def _is_relation_active(relation: Relation) -> bool:
+        """Whether the relation is active based on contained data."""
+        try:
+            _ = repr(relation.data)
+            return True
+        except (RuntimeError, ops.ModelError):
+            return False
+
+
+class LdapProvider(_LdapInterface):
     on = LdapProviderEvents()
 
     def __init__(
@@ -384,11 +410,6 @@ class LdapProvider(Object):
         relation_name: str = DEFAULT_RELATION_NAME,
     ) -> None:
         super().__init__(charm, relation_name)
-
-        self.charm = charm
-        self.app = charm.app
-        self.unit = charm.unit
-        self._relation_name = relation_name
 
         self.framework.observe(
             self.charm.on[self._relation_name].relation_changed,
@@ -411,7 +432,8 @@ class LdapProvider(Object):
             self.charm,
             label=BIND_ACCOUNT_SECRET_LABEL_TEMPLATE.substitute(relation_id=event.relation.id),
         )
-        secret.remove()
+        if secret:
+            secret.remove()
 
     def get_bind_password(self, relation_id: int) -> Optional[str]:
         """Retrieve the bind account password for a given integration."""
@@ -447,7 +469,7 @@ class LdapProvider(Object):
             _update_relation_app_databag(self.charm, relation, data.model_dump())
 
 
-class LdapRequirer(Object):
+class LdapRequirer(_LdapInterface):
     """An LDAP requirer to consume data delivered by an LDAP provider charm."""
 
     on = LdapRequirerEvents()
@@ -461,10 +483,6 @@ class LdapRequirer(Object):
     ) -> None:
         super().__init__(charm, relation_name)
 
-        self.charm = charm
-        self.app = charm.app
-        self.unit = charm.unit
-        self._relation_name = relation_name
         self._data = data
 
         self.framework.observe(
@@ -490,14 +508,25 @@ class LdapRequirer(Object):
         """Handle the event emitted when the LDAP related information is ready."""
         provider_app = event.relation.app
 
-        if not event.relation.data.get(provider_app):
+        if not (provider_data := event.relation.data.get(provider_app)):
             return
 
-        self.on.ldap_ready.emit(event.relation)
+        provider_data = dict(provider_data)
+        if self._load_provider_data(provider_data):
+            self.on.ldap_ready.emit(event.relation)
 
     def _on_ldap_relation_broken(self, event: RelationBrokenEvent) -> None:
         """Handle the event emitted when the LDAP integration is broken."""
         self.on.ldap_unavailable.emit(event.relation)
+
+    def _load_provider_data(self, provider_data: dict) -> Optional[LdapProviderData]:
+        try:
+            secret_id = provider_data.get("bind_password_secret")
+            secret = self.charm.model.get_secret(id=secret_id)
+            provider_data["bind_password"] = secret.get_content().get("password")
+            return LdapProviderData(**provider_data)
+        except (ops.ModelError, ops.SecretNotFoundError, TypeError, ValidationError):
+            return None
 
     def consume_ldap_relation_data(
         self,
@@ -513,27 +542,10 @@ class LdapRequirer(Object):
             return None
 
         provider_data = dict(relation.data.get(relation.app))
-        if secret_id := provider_data.get("bind_password_secret"):
-            secret = self.charm.model.get_secret(id=secret_id)
-            provider_data["bind_password"] = secret.get_content().get("password")
-        return LdapProviderData(**provider_data) if provider_data else None
+        if not provider_data:
+            return None
 
-    def _is_relation_active(self, relation: Relation) -> bool:
-        """Whether the relation is active based on contained data."""
-        try:
-            _ = repr(relation.data)
-            return True
-        except (RuntimeError, ops.ModelError):
-            return False
-
-    @property
-    def relations(self) -> List[Relation]:
-        """The list of Relation instances associated with this relation_name."""
-        return [
-            relation
-            for relation in self.charm.model.relations[self._relation_name]
-            if self._is_relation_active(relation)
-        ]
+        return self._load_provider_data(provider_data)
 
     def _ready_for_relation(self, relation: Relation) -> bool:
         if not relation.app:
