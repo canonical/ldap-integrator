@@ -10,7 +10,7 @@ from typing import Literal
 import jubilant
 import pytest
 import yaml
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import Retrying, stop_after_attempt, wait_exponential
 
 from constants import APP_NAME
 
@@ -75,13 +75,18 @@ def get_integration_data(
     unit = f"{app}/{unit_num}"
     stdout = juju.cli("show-unit", unit)
     result = yaml.safe_load(stdout)
-    data = next(
-        (
-            integration
-            for integration in result[unit]["relation-info"]
-            if integration["endpoint"] == endpoint
+
+    try:
+        data = next(
+            (
+                integration
+                for integration in result[unit]["relation-info"]
+                if integration["endpoint"] == endpoint
+            )
         )
-    )
+    except StopIteration:
+        # Set `data` to `None` if an endpoint has 0 integrations associated with it.
+        data = None
 
     match target:
         case "app":
@@ -100,22 +105,21 @@ def remove_integration(
 
     Integration is restored after the context is exited.
     """
-
-    # The pre-existing integration instance can still be "dying" when the `finally` block
-    # is called, so `tenacity.retry` is used here to capture the `jubilant.CLIError`
-    # and re-run `juju integrate ...` until the previous integration instance has finished dying.
-    @retry(
-        wait=wait_exponential(multiplier=2, min=1, max=30),
-        stop=stop_after_attempt(10),
-        reraise=True,
-    )
-    def _reintegrate() -> None:
-        juju.integrate(f"{APP_NAME}:{integration_name}", remote_app_name)
-
     juju.remove_relation(f"{APP_NAME}:{integration_name}", remote_app_name)
     juju.wait(lambda status: jubilant.all_active(status, remote_app_name))
     try:
         yield
     finally:
-        _reintegrate()
+        # The pre-existing integration instance can still be "dying" when the `finally` block
+        # is called, so `tenacity.retry` is used here to capture the `jubilant.CLIError`
+        # and re-run `juju integrate ...` until the previous integration instance
+        # has finished dying.
+        for attempt in Retrying(
+            wait=wait_exponential(multiplier=2, min=1, max=30),
+            stop=stop_after_attempt(10),
+            reraise=True,
+        ):
+            with attempt:
+                juju.integrate(f"{APP_NAME}:{integration_name}", remote_app_name)
+
         juju.wait(lambda status: jubilant.all_active(status, APP_NAME, remote_app_name))

@@ -21,6 +21,7 @@ from constants import (
 pytestmark = pytest.mark.machine
 
 
+@pytest.mark.order(0)
 def test_build_and_deploy(
     integrator_model: jubilant.Juju,
     server_model: jubilant.Juju,
@@ -83,6 +84,34 @@ def test_build_and_deploy(
     integrator_model.wait(jubilant.all_active, error=jubilant.any_error)
 
 
+@pytest.mark.order(1)
 def test_sssd_connection(integrator_model: jubilant.Juju) -> None:
     result = integrator_model.exec("getent passwd nucci", unit=f"{UBUNTU_APP}/0")
+    assert result.return_code == 0
+
+
+@pytest.mark.order(2)
+def test_multi_sssd_connection(integrator_model: jubilant.Juju) -> None:
+    # Deploy second SSSD application.
+    ubuntu_secondary = f"{UBUNTU_APP}-secondary"
+    sssd_secondary = f"{SSSD_APP}-secondary"
+    integrator_model.deploy(
+        UBUNTU_APP,
+        ubuntu_secondary,
+        base="ubuntu@24.04",
+    )
+    integrator_model.deploy(
+        SSSD_APP,
+        sssd_secondary,
+        base="ubuntu@24.04",
+        channel="latest/edge",
+    )
+    integrator_model.integrate(f"{sssd_secondary}:juju-info", f"{ubuntu_secondary}:juju-info")
+    integrator_model.integrate(f"{APP_NAME}:ldap", f"{sssd_secondary}:ldap")
+
+    # Ensure ldap-integrator and sssd-secondary are active.
+    integrator_model.wait(jubilant.all_active, error=jubilant.any_error)
+
+    # Test that secondary ubuntu application can query the remote user.
+    result = integrator_model.exec("getent passwd nucci", unit=f"{ubuntu_secondary}/0")
     assert result.return_code == 0

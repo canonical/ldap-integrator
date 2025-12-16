@@ -4,13 +4,10 @@
 from unittest.mock import MagicMock
 
 import ops
-import pytest
 from charms.glauth_k8s.v0.ldap import LdapProviderData
 from ops import testing
-from pytest_mock import MockerFixture
 
 from charm import LdapIntegratorCharm
-from constants import LDAP_INTEGRATION_NAME
 
 
 class TestHolisticHandler:
@@ -25,7 +22,6 @@ class TestHolisticHandler:
         self,
         ctx: testing.Context[LdapIntegratorCharm],
         mock_ldap_provider: MagicMock,
-        all_satisfied_conditions: None,
         ldap_integration: testing.Relation,
     ) -> None:
         state = ctx.run(
@@ -40,7 +36,6 @@ class TestHolisticHandler:
         self,
         ctx: testing.Context[LdapIntegratorCharm],
         mock_ldap_provider: MagicMock,
-        all_satisfied_conditions: None,
         ldap_integration: testing.Relation,
         charm_configuration: dict,
         password_secret: testing.Secret,
@@ -72,7 +67,6 @@ class TestCollectStatusEvent:
     def test_when_all_condition_satisfied(
         self,
         ctx: testing.Context[LdapIntegratorCharm],
-        all_satisfied_conditions: None,
         charm_configuration: dict,
         password_secret: testing.Secret,
     ) -> None:
@@ -85,37 +79,9 @@ class TestCollectStatusEvent:
 
         assert isinstance(state.unit_status, ops.ActiveStatus)
 
-    @pytest.mark.parametrize(
-        "condition, status, message",
-        [
-            (
-                "ldap_integration_exists",
-                ops.BlockedStatus,
-                f"Missing integration {LDAP_INTEGRATION_NAME}",
-            ),
-        ],
-    )
-    def test_when_a_condition_failed(
-        self,
-        ctx: testing.Context[LdapIntegratorCharm],
-        mocker: MockerFixture,
-        condition: str,
-        status: ops.StatusBase,
-        message: str,
-    ) -> None:
-        mocker.patch(f"charm.{condition}", return_value=False)
-
-        state = ctx.run(ctx.on.collect_unit_status(), state=testing.State(leader=True))
-
-        # Static type checker complains about `ops.StatusBase` being incompatible with the
-        # signature of `instance`, so we use tuple[ops.StatusBase] here to make it happy.
-        assert isinstance(state.unit_status, (status,))
-        assert state.unit_status.message == message
-
     def test_when_ldap_integration_exists_with_no_config(
         self,
         ctx: testing.Context[LdapIntegratorCharm],
-        all_satisfied_conditions: None,
     ) -> None:
         state = ctx.run(ctx.on.collect_unit_status(), state=testing.State(leader=True))
 
