@@ -7,6 +7,7 @@ from pathlib import Path
 
 import jubilant
 import pytest
+from tenacity import Retrying, stop_after_attempt, wait_exponential
 
 # isort: off
 from constants import APP_NAME, BIND_PASSWORD_SECRET, CERTIFICATE_PROVIDER_APP, GLAUTH_APP
@@ -79,4 +80,13 @@ def test_ldap_integration(
 
 def test_remove_ldap_integration(integrator_model: jubilant.Juju) -> None:
     with remove_integration(integrator_model, GLAUTH_APP, "ldap"):
-        integrator_model.wait(lambda status: jubilant.all_blocked(status, APP_NAME))
+        for attempt in Retrying(
+            wait=wait_exponential(multiplier=2, min=1, max=30),
+            stop=stop_after_attempt(10),
+            reraise=True,
+        ):
+            with attempt:
+                assert (
+                    get_integration_data(integrator_model, app=GLAUTH_APP, endpoint="ldap-client")
+                    is None
+                )

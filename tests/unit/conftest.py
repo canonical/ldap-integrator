@@ -12,11 +12,6 @@ from constants import LDAP_INTEGRATION_NAME
 
 
 @pytest.fixture
-def all_satisfied_conditions(mocker: MockerFixture) -> None:
-    mocker.patch("charm.ldap_integration_exists", return_value=True)
-
-
-@pytest.fixture
 def charm_configuration(password_secret: testing.Secret, starttls: bool) -> dict:
     config = {
         "urls": "ldap://ldap.com/path/to/somewhere",

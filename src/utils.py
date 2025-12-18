@@ -1,30 +1,10 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import logging
-from typing import TYPE_CHECKING, Callable
-
-from constants import LDAP_INTEGRATION_NAME
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from charm import LdapIntegratorCharm
-
-
-logger = logging.getLogger(__name__)
-
-Condition = Callable[["LdapIntegratorCharm"], bool]
-
-
-def integration_existence(integration_name: str) -> Condition:
-    """A factory of integration existence condition."""
-
-    def wrapped(charm: "LdapIntegratorCharm") -> bool:
-        return bool(charm.model.relations[integration_name])
-
-    return wrapped
-
-
-ldap_integration_exists = integration_existence(LDAP_INTEGRATION_NAME)
 
 
 def missing_config(charm: "LdapIntegratorCharm") -> set[str]:
