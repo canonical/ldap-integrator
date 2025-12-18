@@ -1,5 +1,4 @@
 -r requirements.txt
 jubilant
 pytest
-pytest-order
 tenacity
