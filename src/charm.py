@@ -34,9 +34,10 @@ class LdapIntegratorCharm(ops.CharmBase):
             return
 
         bind_password = self._get_bind_password()
+        urls = self.config.get("urls").split(",")
         data = LdapProviderData(
-            urls=self.config.get("urls").split(","),
-            ldaps_urls=self.config.get("ldaps_urls").split(","),
+            urls=[url for url in urls if url.startswith("ldap://")],
+            ldaps_urls=[url for url in urls if url.startswith("ldaps://")],
             base_dn=self.config.get("base_dn"),
             starttls=self.config.get("starttls"),
             bind_dn=self.config.get("bind_dn"),

@@ -50,9 +50,10 @@ class TestHolisticHandler:
             ),
         )
 
+        expected_urls = charm_configuration["urls"].split(",")
         expected = LdapProviderData(
-            urls=charm_configuration["urls"].split(","),
-            ldaps_urls=charm_configuration["ldaps_urls"].split(","),
+            urls=[url for url in expected_urls if url.startswith("ldap://")],
+            ldaps_urls=[url for url in expected_urls if url.startswith("ldaps://")],
             base_dn=charm_configuration["base_dn"],
             starttls=charm_configuration["starttls"],
             bind_dn=charm_configuration["bind_dn"],
