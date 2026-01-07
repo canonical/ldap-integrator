@@ -106,7 +106,7 @@ def remove_integration(
     Integration is restored after the context is exited.
     """
     juju.remove_relation(f"{APP_NAME}:{integration_name}", remote_app_name)
-    juju.wait(lambda status: jubilant.all_active(status, remote_app_name))
+    juju.wait(lambda status: jubilant.all_agents_idle(status, remote_app_name))
     try:
         yield
     finally:

@@ -14,8 +14,7 @@ from constants import LDAP_INTEGRATION_NAME
 @pytest.fixture
 def charm_configuration(password_secret: testing.Secret, starttls: bool) -> dict:
     config = {
-        "urls": "ldap://ldap.com/path/to/somewhere",
-        "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
+        "urls": "ldap://ldap.com/path/to/somewhere,ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
         "starttls": starttls,
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",

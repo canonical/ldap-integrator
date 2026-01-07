@@ -68,13 +68,14 @@ def test_ldap_integration(
         == bind_password_integrator_config.content["password"]
     )
 
+    urls = integrator_config["urls"].split(",")
     assert ldap_integration_data == {
         "auth_method": integrator_config["auth_method"],
         "base_dn": integrator_config["base_dn"],
         "bind_dn": integrator_config["bind_dn"],
         "starttls": integrator_config["starttls"],
-        "urls": json.dumps(integrator_config["urls"].split(", ")),
-        "ldaps_urls": json.dumps(integrator_config["ldaps_urls"].split(", ")),
+        "urls": json.dumps([url for url in urls if url.startswith("ldap://")]),
+        "ldaps_urls": json.dumps([url for url in urls if url.startswith("ldaps://")]),
     }
 
 

@@ -67,8 +67,7 @@ def bind_password_secret(integrator_model: jubilant.Juju) -> jubilant.SecretURI:
 @pytest.fixture
 def integrator_config(bind_password_secret: jubilant.SecretURI) -> dict:
     return {
-        "urls": "ldap://ldap.com/path/to/somewhere",
-        "ldaps_urls": "ldaps://ldap.com/path/to/somewhere",
+        "urls": "ldap://ldap.com/path/to/somewhere,ldaps://ldap.com/path/to/somewhere",
         "base_dn": "dc=glauth,dc=com",
         "starttls": "True",
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",

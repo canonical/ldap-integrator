@@ -67,8 +67,7 @@ def test_build_and_deploy(
         local_charm,
         APP_NAME,
         config={
-            "urls": f"ldap://{server_address}",
-            "ldaps_urls": f"ldaps://{server_address}",
+            "urls": f"ldap://{server_address},ldaps://{server_address}",
             "base_dn": "dc=test,dc=ubuntu,dc=com",
             "starttls": False,
             "bind_dn": "cn=admin,dc=test,dc=ubuntu,dc=com",
