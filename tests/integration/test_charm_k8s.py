@@ -70,7 +70,7 @@ def test_ldap_integration(
 
     urls = integrator_config["urls"].split(",")
     assert ldap_integration_data == {
-        "auth_method": integrator_config["auth_method"],
+        "auth_method": "simple",
         "base_dn": integrator_config["base_dn"],
         "bind_dn": integrator_config["bind_dn"],
         "starttls": integrator_config["starttls"],

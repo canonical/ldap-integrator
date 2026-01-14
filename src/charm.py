@@ -42,7 +42,7 @@ class LdapIntegratorCharm(ops.CharmBase):
             starttls=self.config.get("starttls"),
             bind_dn=self.config.get("bind_dn"),
             bind_password=bind_password,
-            auth_method=self.config.get("auth_method"),
+            auth_method="simple",
         )
 
         for integration in self.ldap.relations:

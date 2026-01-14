@@ -19,7 +19,6 @@ def charm_configuration(password_secret: testing.Secret, starttls: bool) -> dict
         "starttls": starttls,
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",
         "bind_password": password_secret.id,
-        "auth_method": "simple",
     }
     return config
 
