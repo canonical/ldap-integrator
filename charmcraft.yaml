@@ -35,7 +35,7 @@ config:
     starttls:
       description: |
         Whether starttls is used, defaults to true
-      defaults: true
+      default: true
       type: boolean
     bind_dn:
       description: |
@@ -45,11 +45,6 @@ config:
       description: |
         The bind password
       type: secret
-    auth_method:
-      description: |
-        The authentication method, defaults to simple
-      defaults: simple
-      type: string
 
 
 parts:

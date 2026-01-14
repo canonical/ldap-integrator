@@ -58,7 +58,7 @@ class TestHolisticHandler:
             starttls=charm_configuration["starttls"],
             bind_dn=charm_configuration["bind_dn"],
             bind_password=password_secret.tracked_content["password"],
-            auth_method=charm_configuration["auth_method"],
+            auth_method="simple",
         )
         assert isinstance(state.unit_status, ops.ActiveStatus)
         mock_ldap_provider.assert_called_once_with(expected, relation_id=ldap_integration.id)

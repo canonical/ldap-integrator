@@ -72,7 +72,6 @@ def integrator_config(bind_password_secret: jubilant.SecretURI) -> dict:
         "starttls": "True",
         "bind_dn": "cn=user,ou=group,dc=glauth,dc=com",
         "bind_password": bind_password_secret,
-        "auth_method": "simple",
     }
 
 

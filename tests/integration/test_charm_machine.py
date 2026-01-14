@@ -72,7 +72,6 @@ def test_build_and_deploy(
             "starttls": False,
             "bind_dn": "cn=admin,dc=test,dc=ubuntu,dc=com",
             "bind_password": bind_password_secret,
-            "auth_method": "simple",
         },
     )
     integrator_model.grant_secret(BIND_PASSWORD_SECRET, APP_NAME)
