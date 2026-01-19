@@ -58,7 +58,7 @@ Then you will have to configure the ldap-integrator, eg:
 juju config ldap-integrator urls=ldap://path/to/somewhere base_dn=dc=glauth,dc=com bind_dn=cn=user,ou=group,dc=glauth,dc=com bind_password=my-secret
 ```
 
-**Note:** The `urls` configuration accepts a comma-separated list of LDAP server URLs. This feature is designed to support **high availability (HA) setups** by providing failover capability. Multiple URLs should point to different replicas of the **same LDAP server infrastructure** (e.g., primary and backup servers with synchronized data). This is **not** intended for connecting to multiple independent LDAP servers.
+**Note:** The `urls` configuration accepts a comma-separated list of LDAP server URLs. This feature is designed to support **high availability (HA)** setups by providing failover capability. Multiple URLs should point to different replicas of the same LDAP server infrastructure (e.g., primary and backup servers with synchronized data). This is **not** intended for connecting to multiple independent LDAP servers.
 
 Now you can integrate glauth with ldap-integrator:
 

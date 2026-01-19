@@ -283,7 +283,7 @@ class Secret:
 
 class LdapProviderBaseData(BaseModel):
     """Base data model for LDAP provider configuration.
-    
+
     The urls and ldaps_urls fields support multiple server addresses for high
     availability (HA) setups. When multiple URLs are provided, they should point
     to replicas of the same LDAP infrastructure (e.g., primary and backup servers
