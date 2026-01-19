@@ -10,9 +10,7 @@
 
 ## Description
 
-This charm is an integrator for external LDAP services. It enables client charms to connect to and authenticate with existing LDAP servers by providing the necessary LDAP configuration data through Juju integrations.
-
-The LDAP integrator acts as a bridge between your Juju-managed applications and external LDAP infrastructure. Rather than requiring each application to be individually configured with LDAP connection details, you configure the integrator once, and it propagates the settings to all integrated applications.
+This charm is an integrator for external LDAP services. It enables client charms to connect to and authenticate with existing LDAP servers by providing the necessary LDAP configuration data through Juju integrations. The LDAP integrator acts as a bridge between your Juju-managed applications and external LDAP infrastructure.
 
 **Key features:**
 - Centralized LDAP configuration management for multiple client applications
