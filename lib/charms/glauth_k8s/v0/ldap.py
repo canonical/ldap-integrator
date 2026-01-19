@@ -282,6 +282,14 @@ class Secret:
 
 
 class LdapProviderBaseData(BaseModel):
+    """Base data model for LDAP provider configuration.
+    
+    The urls and ldaps_urls fields support multiple server addresses for high
+    availability (HA) setups. When multiple URLs are provided, they should point
+    to replicas of the same LDAP infrastructure (e.g., primary and backup servers
+    with synchronized data) to enable failover capability. These fields are not
+    intended for connecting to multiple independent LDAP servers.
+    """
     urls: List[str] = Field(frozen=True)
     ldaps_urls: List[str] = Field(frozen=True)
     base_dn: str = Field(frozen=True)

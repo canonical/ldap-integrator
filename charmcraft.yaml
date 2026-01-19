@@ -26,7 +26,10 @@ config:
   options:
     urls:
       description: |
-        Comma separated list of ldap and ldaps server urls
+        Comma-separated list of LDAP and LDAPS server URLs for high availability.
+        Multiple URLs should point to replicas of the same LDAP infrastructure
+        (e.g., primary and backup servers) to provide failover capability.
+        This is not intended for connecting to multiple independent LDAP servers.
       type: string
     base_dn:
       description: |
