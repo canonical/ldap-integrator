@@ -2,25 +2,26 @@
 # See https://juju.is/docs/sdk/charmcraft-config for guidance.
 
 name: ldap-integrator
-
-type: charm
-
 title: LDAP Integrator
-
 summary: An integrator charm for configuring ldap clients.
-
 description: |
   An integrator charm for configuring ldap clients.
+links:
+  contact: https://matrix.to/#/!3xNKp3PFtjTOKbwJykMRzruCbSEMkXb8ZRrDKk1vknI?via=ubuntu.com&via=matrix.org&via=laquadrature.net
+  issues:
+    - https://github.com/canonical/ldap-integrator/issues
+  source:
+    - https://github.com/canonical/ldap-integrator
 
+type: charm
 platforms:
-  ubuntu@22.04:amd64:
+  ubuntu@24.04:amd64:
 
 provides:
   ldap:
     description: |
       Provides LDAP configuration data
     interface: ldap
-
 
 config:
   options:
