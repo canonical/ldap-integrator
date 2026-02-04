@@ -32,7 +32,7 @@ jobs:
     name: Build charm
     uses: canonical/identity-team/.github/workflows/_charm-build.yaml@6b27807be4ec7c25045d52ef09ac780d684f65a2 # v1.10.0
     with:
-      use-charmcraftcache: false
+      use-charmcraftcache: true
     needs:
       - unit-test
 
