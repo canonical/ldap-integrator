@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/canonical/ldap-integrator/compare/v1.1.0...v1.2.0) (2026-02-20)
+
+
+### Features
+
+* bump charm base to 24.04 ([c4647c3](https://github.com/canonical/ldap-integrator/commit/c4647c326d5ac1243947781f8f17e929a3fb4aab))
+* bump charm base to 24.04 ([#164](https://github.com/canonical/ldap-integrator/issues/164)) ([6ad8eb4](https://github.com/canonical/ldap-integrator/commit/6ad8eb40147165f0ae7dacc608830eaef01315af))
+
+
+### Bug Fixes
+
+* use correct syntax for setting config defaults and remove `auth_method` option ([08df187](https://github.com/canonical/ldap-integrator/commit/08df18718f22afa69e8dd863ba79c6c2127d5dbe))
+* use correct syntax for setting config defaults and remove `auth_method` option ([07ecbe6](https://github.com/canonical/ldap-integrator/commit/07ecbe66c732dd35e175de0eef4874e3934bc386))
+
 ## [1.1.0](https://github.com/canonical/ldap-integrator/compare/v1.0.0...v1.1.0) (2026-01-12)
 
 
