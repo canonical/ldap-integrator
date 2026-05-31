@@ -1,13 +1,13 @@
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-output "app_name" {
-  description = "The name of the deployed application"
-  value       = juju_application.ldap_integrator.name
+output "application" {
+  description = "The deployed juju_application resource"
+  value       = juju_application.ldap_integrator
 }
 
 output "provides" {
-  description = "The Juju integrations that the charm provides"
+  description = "Map of provides endpoint names"
   value = {
     ldap = "ldap"
   }

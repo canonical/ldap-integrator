@@ -1,43 +1,44 @@
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-variable "model_uuid" {
-  description = "UUID of the Juju model to deploy to"
-  type        = string
-}
-
 variable "app_name" {
-  description = "Name of the application"
+  description = "Name of the application in the Juju model"
   type        = string
   default     = "ldap-integrator"
 }
 
 variable "base" {
-  description = "The charm base"
+  description = "Operating system base for the charm (e.g. ubuntu@22.04)"
   type        = string
-  default     = "ubuntu@22.04"
+  default     = null
 }
 
 variable "channel" {
-  description = "Channel to use for the charm"
+  description = "Channel to use when deploying the charm"
   type        = string
   default     = "latest/stable"
 }
 
 variable "config" {
-  description = "The charm config"
+  description = "Map of charm configuration options"
   type        = map(string)
   default     = {}
 }
 
 variable "constraints" {
-  description = "The constraints to be applied"
+  description = "Constraints string for the deployed application"
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "model_uuid" {
+  description = "UUID of the Juju model to deploy the charm into"
+  type        = string
+  nullable    = false
 }
 
 variable "revision" {
-  description = "Revision of the charm to deploy"
+  description = "Charm revision to deploy. Null deploys the latest on the given channel"
   type        = number
   default     = null
 }
