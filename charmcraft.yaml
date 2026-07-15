@@ -16,6 +16,7 @@ links:
 type: charm
 platforms:
   ubuntu@24.04:amd64:
+  ubuntu@24.04:arm64:
 
 provides:
   ldap:
