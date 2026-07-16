@@ -20,17 +20,17 @@ on:
 jobs:
   linting:
     name: Linting
-    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@6b27807be4ec7c25045d52ef09ac780d684f65a2 # v1.10.0
+    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@b5070d98993fa72f429f4fdf8010f6f9a94eb4e0 # v1.14.2
 
   unit-test:
     name: Unit Tests
-    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@6b27807be4ec7c25045d52ef09ac780d684f65a2 # v1.10.0
+    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@b5070d98993fa72f429f4fdf8010f6f9a94eb4e0 # v1.14.2
     needs:
       - linting
 
   build:
     name: Build charm
-    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@6b27807be4ec7c25045d52ef09ac780d684f65a2 # v1.10.0
+    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@b5070d98993fa72f429f4fdf8010f6f9a94eb4e0 # v1.14.2
     with:
       use-charmcraftcache: true
     needs:
@@ -64,7 +64,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
         with:
-          name: ${{ github.sha }}-build
+          name: ${{ needs.build.outputs.artifacts-key }}
 
       - name: Run integration tests
         run: tox -e integration -- --run-k8s --model testing
@@ -112,7 +112,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
         with:
-          name: ${{ github.sha }}-build
+          name: ${{ needs.build.outputs.artifacts-key }}
 
       - name: Run integration tests
         run: tox -e integration -- --run-machine --model testing
