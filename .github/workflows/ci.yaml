@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup operator environment (microk8s)
-        uses: charmed-kubernetes/actions-operator@main
+        uses: charmed-kubernetes/actions-operator@d8217ad61c15f746727a9d41563c13e9b9fe56e3 # main
         with:
           juju-channel: 3.6/stable
           provider: microk8s
@@ -79,7 +79,7 @@ jobs:
 
       - name: Dump logs
         if: failure()
-        uses: canonical/charming-actions/dump-logs@main
+        uses: canonical/charming-actions/dump-logs@9180b22741d2349858e35e1dcc2fe4e11c3ebf2d # main
 
       - name: Get juju logs for the charm
         if: ${{ failure() }}
@@ -95,7 +95,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup operator environment (lxd)
-        uses: charmed-kubernetes/actions-operator@main
+        uses: charmed-kubernetes/actions-operator@d8217ad61c15f746727a9d41563c13e9b9fe56e3 # main
         with:
           juju-channel: 3.6/stable
           provider: lxd
@@ -123,7 +123,7 @@ jobs:
 
       - name: Dump logs
         if: failure()
-        uses: canonical/charming-actions/dump-logs@main
+        uses: canonical/charming-actions/dump-logs@9180b22741d2349858e35e1dcc2fe4e11c3ebf2d # main
 
       - name: Get juju logs for the charm
         if: ${{ failure() }}
