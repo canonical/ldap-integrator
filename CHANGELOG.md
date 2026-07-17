@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0](https://github.com/canonical/ldap-integrator/compare/v1.2.0...v1.3.0) (2026-07-16)
+
+
+### Features
+
+* add arm64 support ([#187](https://github.com/canonical/ldap-integrator/issues/187)) ([fc88a4a](https://github.com/canonical/ldap-integrator/commit/fc88a4ac9e69ad2d30a441e72f49b26bf4401cca))
+* support arm64 ([4c95327](https://github.com/canonical/ldap-integrator/commit/4c953270ca8bb940888b4c9bfcf7aa6c870e2477))
+* update tf module to comply with CC008 specification ([5ee9d17](https://github.com/canonical/ldap-integrator/commit/5ee9d17001aa1462de91fb028412d004610f2698))
+* update tf module to comply with CC008 specification ([#182](https://github.com/canonical/ldap-integrator/issues/182)) ([df0af23](https://github.com/canonical/ldap-integrator/commit/df0af237c8b8addc399bd79c210608d83ce2db7c))
+
 ## [1.2.0](https://github.com/canonical/ldap-integrator/compare/v1.1.0...v1.2.0) (2026-02-20)
 
 
