@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/canonical/ldap-integrator/compare/v1.3.0...v1.3.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* ci permissions ([32e842e](https://github.com/canonical/ldap-integrator/commit/32e842e4a03bb51f189509a7a3597c55f3be1d26))
+* ci permissions ([#189](https://github.com/canonical/ldap-integrator/issues/189)) ([2adda14](https://github.com/canonical/ldap-integrator/commit/2adda146a1031a98927bc439e1c880ba8c1e12f9))
+
 ## [1.3.0](https://github.com/canonical/ldap-integrator/compare/v1.2.0...v1.3.0) (2026-07-16)
 
 
