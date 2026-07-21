@@ -1,9 +1,0 @@
--r requirements.txt
-coverage[toml]
-cryptography
-ipdb
-jsonschema
-ops[testing]
-pydantic
-pytest
-pytest-mock

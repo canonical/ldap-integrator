@@ -67,7 +67,7 @@ jobs:
           name: ${{ needs.build.outputs.artifacts-key }}
 
       - name: Run integration tests
-        run: tox -e integration -- --run-k8s --model testing
+        run: tox -e build-prerequisites,integration -- --run-k8s --model testing
 
       - name: Get contexts
         if: failure()
@@ -115,7 +115,7 @@ jobs:
           name: ${{ needs.build.outputs.artifacts-key }}
 
       - name: Run integration tests
-        run: tox -e integration -- --run-machine --model testing
+        run: tox -e build-prerequisites,integration -- --run-machine --model testing
 
       - name: Get juju status
         if: failure()
