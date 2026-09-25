@@ -20,17 +20,17 @@ on:
 jobs:
   linting:
     name: Linting
-    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
 
   unit-test:
     name: Unit Tests
-    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
     needs:
       - linting
 
   build:
     name: Build charm
-    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
     with:
       use-charmcraftcache: false
     needs:
