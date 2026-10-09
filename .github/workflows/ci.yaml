@@ -20,17 +20,17 @@ on:
 jobs:
   linting:
     name: Linting
-    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-linting.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
 
   unit-test:
     name: Unit Tests
-    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-tests-unit.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
     needs:
       - linting
 
   build:
     name: Build charm
-    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@83e6e76b28b0db96c133c16bbec121cba34a86db # v1.14.3
+    uses: canonical/identity-team/.github/workflows/_charm-build.yaml@fc85af7448538c473be450dc2c8ec5d158ea0d15 # v1.17.0
     with:
       use-charmcraftcache: false
     needs:
@@ -62,7 +62,7 @@ jobs:
         run: echo "CHARM_PATH=${{ github.workspace }}/${{ needs.build.outputs.charm-paths }}" >> $GITHUB_ENV
 
       - name: Download charm artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ needs.build.outputs.artifacts-key }}
 
@@ -110,7 +110,7 @@ jobs:
         run: echo "CHARM_PATH=${{ github.workspace }}/${{ needs.build.outputs.charm-paths }}" >> $GITHUB_ENV
 
       - name: Download charm artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ needs.build.outputs.artifacts-key }}
 
