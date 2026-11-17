@@ -90,7 +90,29 @@ def get_integration_data(
 
     match target:
         case "app":
-            return data["application-data"] if data else None
+            if not data:
+                return None
+            version = juju.cli("version", include_model=False).strip()
+            if version.startswith("4."):
+                related_units = data.get("related-units", {})
+                remote_unit = next(
+                    (u for u in related_units if not u.startswith(f"{app}/")),
+                    None,
+                )
+                if remote_unit:
+                    remote_stdout = juju.cli("show-unit", remote_unit)
+                    remote_result = yaml.safe_load(remote_stdout)
+                    remote_data = remote_result[remote_unit]
+                    rel = next(
+                        (
+                            r
+                            for r in remote_data.get("relation-info", [])
+                            if r["relation-id"] == data["relation-id"]
+                        ),
+                        None,
+                    )
+                    return rel["application-data"] if rel else None
+            return data["application-data"]
         case "unit":
             return data["related-units"][unit]["data"] if data else None
         case _:
